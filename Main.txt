@@ -20,17 +20,13 @@ var healingPotions = ["defensive", "vampiric", "cleansing", "healing"]
 var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
 
 // Ordered from preferred to fallback.  GetOwned() ignores anything not in inventory.
-var meleeWeapons = [
-	"big aether sword +10", "big aether sword U", "big vigor sword", "poison hammer +11", "poison hammer",
-	"fire hammer +11", "ice hammer +12", "ice sword +11", "heavy hammer +9", "bardiche +11",
-	"big aether sword", "big vigor sword", "poison hammer", "vigor hammer", "fire hammer", "ice hammer", "ice sword", "heavy hammer", "bardiche"
-]
-var rangedWeapons = ["aether staff +11", "aether staff", "ice staff +11", "ice staff", "vigor staff *8 +6", "vigor staff +6", "vigor staff", "fire talisman", "aether talisman"]
-var physicalRangedWeapons = ["ice staff +11", "ice staff", "aether staff +11", "aether staff", "vigor staff *8 +6", "vigor staff +6", "vigor staff"]
-var shields = ["aether shield +13", "towering shield +11", "fire shield +9", "poison shield +9", "dashing shield +10", "bashing shield *7"]
-var dashShields = ["dashing shield +10", "bashing shield *7"]
-var armorBreakWeapons = ["heavy hammer +9", "heavy hammer"]
-var splashWeapons = ["big aether sword +10", "big aether sword U", "bardiche +11", "big vigor sword"]
+var meleeWeapons = ["big aether sword", "big vigor sword", "poison hammer", "vigor hammer", "fire hammer", "ice hammer", "ice sword", "heavy hammer", "bardiche"]
+var rangedWeapons = ["aether staff", "ice staff", "vigor staff", "fire talisman", "aether talisman"]
+var physicalRangedWeapons = ["ice staff", "aether staff", "vigor staff"]
+var shields = ["aether shield", "towering shield", "fire shield", "poison shield", "dashing shield", "bashing shield", "shield"]
+var dashShields = ["dashing shield", "bashing shield"]
+var armorBreakWeapons = ["heavy hammer"]
+var splashWeapons = ["big aether sword", "bardiche", "big vigor sword"]
 var debuffPoison = ["poison sword dP"]
 var debuffFire = ["fire sword dF"]
 var debuffIce = ["ice sword dI"]
@@ -93,19 +89,19 @@ func CounterElement()
 
 func CounterWeapon(counter)
 	?counter = "poison"
-		return GetOwned(["poison hammer +11", "poison sword +11", "poison sword dP"])
+		return GetOwned(["poison hammer", "poison sword dP", "poison sword"])
 	?counter = "vigor"
-		return GetOwned(["vigor hammer +11", "vigor sword +11", "vigor staff +6"])
+		return GetOwned(["vigor hammer", "vigor sword", "vigor staff"])
 	?counter = "aether"
-		return GetOwned(["aether hammer +11", "aether sword +11", "big aether sword +10", "big aether sword U"])
+		return GetOwned(["aether hammer", "aether sword", "big aether sword"])
 	?counter = "fire"
-		return GetOwned(["fire hammer +11", "fire sword +11", "fire talisman"])
+		return GetOwned(["fire hammer", "fire sword", "fire talisman"])
 	?counter = "ice"
-		return GetOwned(["ice hammer +12", "ice sword +11", "ice staff +11"])
+		return GetOwned(["ice hammer", "ice sword", "ice staff"])
 	return false
 
 func IsTwoHanded(itemName)
-	return itemName = "big aether sword +10" | itemName = "big aether sword U" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "aether staff" | itemName = "ice staff +11" | itemName = "ice staff" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11"
+	return itemName = "big aether sword" | itemName = "big vigor sword" | itemName = "heavy hammer" | itemName = "bardiche" | itemName = "aether staff" | itemName = "ice staff" | itemName = "vigor staff" | itemName = "ice wand"
 
 func EquipLeft(itemName)
 	?Has(itemName) & !chosenOffhand
@@ -232,17 +228,18 @@ func ChooseEquipment()
 			mindFreezeUntil = totalTime + 60
 
 	?!foe.count | foe.distance > 25
-		// Always assign a movement-capable left-hand item out of combat.
-		// This also replaces a stale star/ouroboros left in the hand.
-		chosenMelee = GetOwned(["triskelion", "quest"])
+		// Star Stone magnet and Triskelion movement bonus occupy separate hands.
+		// Assign both every frame so stale combat or pickup gear is replaced.
+		chosenMelee = false
+		chosenOffhand = GetOwned(["star stone"])
+		chosenShield = GetOwned(["triskelion"])
 		?hp < maxhp
-			chosenMelee = GetOwned(["ouroboros", "triskelion", "quest"])
+			chosenOffhand = GetOwned(["ouroboros", "star stone"])
 		:?harvest = Boulder
-			chosenMelee = GetOwned(["shovel", "triskelion", "quest"])
+			chosenBoth = GetOwned(["shovel"])
 		:?harvest = Tree
-			chosenMelee = GetOwned(["triskelion", "quest"])
+			chosenShield = GetOwned(["triskelion"])
 		:?pickup & pickup.distance < 13
-			chosenMelee = false
 			chosenOffhand = GetOwned(["star stone", "star"])
 
 func UsePotion()
@@ -296,7 +293,7 @@ func EquipFinal()
 			equipR @chosenRanged@
 	?chosenOffhand & !chosenMelee & !chosenBoth
 		equipL @chosenOffhand@
-	?chosenShield & !chosenBoth & !chosenMelee & !chosenRanged
+	?chosenShield & !chosenBoth & !chosenRanged & !IsTwoHanded(chosenMelee)
 		equipR @chosenShield@
 	?queuedActivation & item.CanActivate()
 		activate R
