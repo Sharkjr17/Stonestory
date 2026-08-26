@@ -41,6 +41,7 @@ var chosenOffhand
 var chosenBoth
 var queuedActivation
 var dashBlocked
+var preferMeleeNow
 var mindFreezeUntil
 
 func GetOwned(candidates)
@@ -135,6 +136,7 @@ func ChooseEquipment()
 	chosenOffhand = false
 	chosenBoth = false
 	queuedActivation = false
+	preferMeleeNow = false
 
 	counterElement = CounterElement()
 	chosenMelee = CounterWeapon(counterElement)
@@ -162,10 +164,18 @@ func ChooseEquipment()
 		chosenRanged = GetOwned(rangedWeapons)
 		?!chosenRanged
 			chosenMelee = GetOwned(meleeWeapons)
+	?foe = immune_to_ranged
+		chosenRanged = false
+		?!chosenMelee
+			chosenMelee = GetOwned(meleeWeapons)
+	?foe = residue
+		preferMeleeNow = true
+		chosenRanged = false
+		chosenMelee = GetOwned(meleeWeapons)
 
-	?foe.distance > 11 & foe.distance <= 25 & chosenRanged
+	?!preferMeleeNow & foe.distance > 11 & foe.distance <= 25 & chosenRanged
 		chosenMelee = false
-	?foe.distance > 25
+	?!preferMeleeNow & foe.distance > 25
 		chosenMelee = false
 	?!chosenMelee & !chosenRanged & foe.count > 0
 		// Never enter combat with only a shield: use the strongest owned melee fallback.
@@ -193,13 +203,13 @@ func ChooseEquipment()
 				QueueActivate("mask")
 
 	?foe.count > 0 & CloseAs("close") & item.GetCooldown("bash") <= 0 & !dashBlocked
-		?foe.count > 5 | foe.damage > 4 | foe = boss
+		?foe.count > 5 | foe.damage > 4 | foe = boss | foe = residue
 			var bash = GetOwned(["bashing shield *7", "bashing shield"])
 			?bash
 				chosenShield = bash
 				QueueActivate(bash)
 
-	?foe.count > 0 & foe.distance >= 9 & foe.distance <= 14 & item.GetCooldown("dash") <= 0 & !dashBlocked
+	?foe.count > 0 & foe.distance > 5 & foe.distance <= 14 & item.GetCooldown("dash") <= 0 & !dashBlocked & (preferMeleeNow | chosenMelee)
 		var dash = GetOwned(dashShields)
 		?dash
 			chosenShield = dash
@@ -233,8 +243,6 @@ func ChooseEquipment()
 		chosenMelee = false
 		chosenOffhand = GetOwned(["star stone"])
 		chosenShield = GetOwned(["triskelion"])
-		?hp < maxhp
-			chosenOffhand = GetOwned(["ouroboros", "star stone"])
 		:?harvest = Boulder
 			chosenBoth = GetOwned(["shovel"])
 		:?harvest = Tree
@@ -255,28 +263,36 @@ func AreaRules()
 	// Area checker: these boss rules run only in the named area.
 	?loc = rocky
 		?foe = dysangelos | foe = acronian
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = deadwood
 		?foe = poena | foe = xyloalgia
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = caves
 		?foe = bolesh | foe = ceiling
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = fungus
 		?foe = morel
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = undead
 		?foe = pallas
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = mine
 		?foe = bronze_guardian | foe = guardian
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = ridge
 		?foe = yeti | foe = ice wall | foe = ice pillar
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 	:?loc = temple
 		?foe = nagaraja | foe = acronian
-			dashBlocked = true
+			?foe = unpushable
+				dashBlocked = true
 
 func EquipFinal()
 	?chosenBoth
