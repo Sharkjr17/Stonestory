@@ -199,7 +199,7 @@ func ChooseEquipment()
 			QueueActivate(dash)
 
 	?foe.count > 0 & CloseAs("melee") & Has("skeleton arm") & item.GetCooldown("skeleton_arm") <= 0 & item.CanActivate()
-	^& foe ! immune_to_physical & buffs.string ! pick_pocket:3
+	^& foe ! immune_to_physical & buffs.string ! "pick_pocket:3"
 		chosenBoth = "skeleton arm"
 		?foe.hp + foe.armor < 10 | foe.count > 3
 			QueueActivate("skeleton arm")
