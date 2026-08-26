@@ -1,0 +1,305 @@
+import Hats/JesterHat
+import Cosmetics/TwinSuns
+import Pets/CatBalloon
+
+import UI/BossGauge
+import UI/BetterInfo2
+import UI/ClickAbilities
+import UI/MusicBox
+
+// Universal StoneScript auto script.
+// Equipment names are candidates, not fixed selections: the first item owned is used.
+
+var locations = ["Rocky Plateau", "Deadwood Canyon", "Caves of Fear", "Mushroom Forest", "Haunted Halls", "Boiling Mine", "Icy Ridge", "Temple"]
+var locationPotions = ["defensive", "vampiric", "lucky", "vampiric", "vampiric", "strength", "lucky", "berserk"]
+var elements = ["none", "vigor", "aether", "fire", "ice", "poison"]
+var counterElements = ["none", "poison", "vigor", "aether", "fire", "ice"]
+var ranges = ["melee", "close", "medium", "ranged", "screen"]
+var rangeUnits = [5, 11, 16, 25, 35]
+var healingPotions = ["defensive", "vampiric", "cleansing", "healing"]
+var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
+
+// Ordered from preferred to fallback.  GetOwned() ignores anything not in inventory.
+var meleeWeapons = [
+	"big aether sword +10", "big vigor sword", "poison hammer +11", "vigor hammer +11",
+	"fire hammer +11", "ice hammer +12", "ice sword +11", "heavy hammer +9", "bardiche +11"
+]
+var rangedWeapons = ["aether staff +11", "ice staff +11", "vigor staff *8 +6", "vigor staff +6", "fire talisman", "aether talisman"]
+var physicalRangedWeapons = ["ice staff +11", "aether staff +11", "vigor staff *8 +6", "vigor staff +6"]
+var shields = ["aether shield +13", "towering shield +11", "fire shield +9", "poison shield +9", "dashing shield +10", "bashing shield *7"]
+var dashShields = ["dashing shield +10", "bashing shield *7"]
+var armorBreakWeapons = ["heavy hammer +9", "heavy hammer"]
+var splashWeapons = ["big aether sword +10", "bardiche +11", "big vigor sword"]
+var debuffPoison = ["poison sword dP"]
+var debuffFire = ["fire sword dF"]
+var debuffIce = ["ice sword dI"]
+
+var currentLocation
+var currentPotion
+var counterElement
+var chosenMelee
+var chosenRanged
+var chosenShield
+var chosenOffhand
+var chosenBoth
+var queuedActivation
+var dashBlocked
+var mindFreezeUntil
+
+func GetOwned(candidates)
+	for candidate : candidates
+		?item.GetCount(candidate) > 0
+			return candidate
+	return false
+
+func Has(itemName)
+	return itemName & item.GetCount(itemName) > 0
+
+func IsHealing(potion)
+	return potion & healingPotions.Contains(potion)
+
+func IsOffensive(potion)
+	return potion & offensivePotions.Contains(potion)
+
+func Lookup(value, source, result)
+	var index = source.IndexOf(value)
+	?index > -1
+		return result[index]
+	return false
+
+func InRange(minimum, maximum)
+	?foe.count > 0
+		?maximum > minimum
+			return foe.distance >= minimum & foe.distance <= maximum
+		return foe.distance >= minimum
+	return false
+
+func CloseAs(rangeName)
+	return foe.distance <= Lookup(rangeName, ranges, rangeUnits)
+
+func FarAs(rangeName)
+	return foe.distance >= Lookup(rangeName, ranges, rangeUnits)
+
+func CounterElement()
+	?foe.count > 0
+		for i = 1..5
+			var element = elements[i]
+			var counter = counterElements[i]
+			var defenseBuff = "adaptive_defense_" + counter
+			?foe = (" " + element + " ") & foe.buffs.string ! defenseBuff
+				return counter
+	return false
+
+func CounterWeapon(counter)
+	?counter = "poison"
+		return GetOwned(["poison hammer +11", "poison sword +11", "poison sword dP"])
+	?counter = "vigor"
+		return GetOwned(["vigor hammer +11", "vigor sword +11", "vigor staff +6"])
+	?counter = "aether"
+		return GetOwned(["aether hammer +11", "aether sword +11", "big aether sword +10"])
+	?counter = "fire"
+		return GetOwned(["fire hammer +11", "fire sword +11", "fire talisman"])
+	?counter = "ice"
+		return GetOwned(["ice hammer +12", "ice sword +11", "ice staff +11"])
+	return false
+
+func IsTwoHanded(itemName)
+	return itemName = "big aether sword +10" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "ice staff +11" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11" | itemName = "fire talisman" | itemName = "aether talisman"
+
+func EquipLeft(itemName)
+	?Has(itemName) & !chosenOffhand
+		chosenOffhand = itemName
+
+func EquipRight(itemName)
+	?Has(itemName) & !chosenShield
+		chosenShield = itemName
+
+func EquipBoth(itemName)
+	?Has(itemName)
+		chosenBoth = itemName
+
+func QueueActivate(itemName)
+	?itemName & Has(itemName)
+		queuedActivation = itemName
+
+// Attack-animation cancelling (the frame-skip glitch). The dummy items interrupt
+// the post-hit animation, then the normal decision code restores the loadout.
+func CheckForAAC()
+	?ai.enabled
+		?item.left.state = 3
+			equipL wand *0
+		?item.right.state = 3
+			equipR shield *0
+
+func ChooseEquipment()
+	chosenMelee = false
+	chosenRanged = false
+	chosenShield = false
+	chosenOffhand = false
+	chosenBoth = false
+	queuedActivation = false
+
+	counterElement = CounterElement()
+	chosenMelee = CounterWeapon(counterElement)
+	?!chosenMelee
+		chosenMelee = GetOwned(meleeWeapons)
+	chosenRanged = GetOwned(rangedWeapons)
+	chosenShield = GetOwned(shields)
+
+	?foe.count > 3 & CloseAs("melee")
+		var splash = GetOwned(splashWeapons)
+		?splash
+			chosenMelee = splash
+	?foe.armor > 0 & CloseAs("melee")
+		var armorBreaker = GetOwned(armorBreakWeapons)
+		?armorBreaker
+			chosenMelee = armorBreaker
+
+	// Physical immunity requires a staff; ranged fallback is still preferable at distance.
+	?foe = immune_to_physical
+		chosenMelee = GetOwned(physicalRangedWeapons)
+	?foe = immune_to_ranged
+		chosenRanged = false
+
+	?foe.distance > 11 & foe.distance <= 25 & chosenRanged
+		chosenMelee = false
+	?foe.distance > 25
+		chosenMelee = false
+
+	?foe.buffs.string ! protection & CloseAs("close") & buffs.string ! berserk & buffs.string ! lucky & buffs.string ! strength
+		?foe.debuffs.string ! damage
+			var poison = GetOwned(debuffPoison)
+			?poison
+				chosenMelee = poison
+		:?foe.debuffs.string ! dot
+			var fire = GetOwned(debuffFire)
+			?fire
+				chosenMelee = fire
+		:?foe.debuffs.string ! chill
+			var ice = GetOwned(debuffIce)
+			?ice
+				chosenMelee = ice
+		:?foe.debuffs.string ! feeble & (Has("cult mask") | Has("mask")) & item.GetCooldown("mask") <= 0
+			?Has("cult mask")
+				QueueActivate("cult mask")
+			:
+				QueueActivate("mask")
+
+	?foe.count > 0 & CloseAs("close") & item.GetCooldown("bash") <= 0 & !dashBlocked
+		?foe.count > 5 | foe.damage > 4 | foe = boss
+			var bash = GetOwned(["bashing shield *7", "bashing shield"])
+			?bash
+				chosenShield = bash
+				QueueActivate(bash)
+
+	?foe.count > 0 & foe.distance >= 9 & foe.distance <= 14 & item.GetCooldown("dash") <= 0 & !dashBlocked
+		var dash = GetOwned(dashShields)
+		?dash
+			chosenShield = dash
+			QueueActivate(dash)
+
+	?foe.count > 0 & CloseAs("melee") & Has("skeleton arm") & item.GetCooldown("skeleton_arm") <= 0 & item.CanActivate()
+	^& foe ! immune_to_physical & buffs.string ! pick_pocket:3
+		chosenBoth = "skeleton arm"
+		?foe.hp + foe.armor < 10 | foe.count > 3
+			QueueActivate("skeleton arm")
+
+	?foe.count > 5 & CloseAs("ranged") & Has("blade of the fallen god") & item.GetCooldown("blade") <= 0 & item.CanActivate()
+		chosenBoth = "blade of the fallen god"
+		QueueActivate("blade of the fallen god")
+
+	// Mind dodges are location-specific and intentionally conservative.
+	?item.GetCooldown("mind") <= 0
+		?foe = dysangelos & (foe.state = 33 | foe.state = 115)
+			EquipBoth("mind")
+			mindFreezeUntil = totalTime + 60
+		:?foe = bronze_guardian & foe.state = 32 & foe.time >= 10
+			EquipBoth("mind")
+			mindFreezeUntil = totalTime + 60
+		:?foe = nagaraja & foe.state = 112 & foe.time >= 53
+			EquipBoth("mind")
+			mindFreezeUntil = totalTime + 60
+
+	?!foe.count | foe.distance > 25
+		?hp < maxhp
+			chosenOffhand = GetOwned(["ouroboros"])
+		:?pickup.distance < 13
+			chosenOffhand = GetOwned(["star"])
+		:?harvest = Boulder
+			chosenMelee = GetOwned(["shovel"])
+		:?harvest = Tree
+			chosenMelee = GetOwned(["hatchet"])
+
+func UsePotion()
+	?item.potion ! empty
+		?IsHealing(item.potion) & hp < (0.35 * maxhp)
+			activate potion
+		:?IsOffensive(item.potion) & foe.count > 0 & (foe = boss | foe = dysangelos | foe = bolesh | foe = yeti) & foe.state > 1
+			activate potion
+		:?item.potion = cleansing & debuffs.count > 15
+			activate potion
+
+func AreaRules()
+	// Area checker: these boss rules run only in the named area.
+	?currentLocation = "Rocky Plateau"
+		?foe = dysangelos | foe = acronian
+			dashBlocked = true
+	:?currentLocation = "Deadwood Canyon"
+		?foe = poena | foe = xyloalgia
+			dashBlocked = true
+	:?currentLocation = "Caves of Fear"
+		?foe = bolesh | foe = ceiling
+			dashBlocked = true
+	:?currentLocation = "Mushroom Forest"
+		?foe = morel
+			dashBlocked = true
+	:?currentLocation = "Haunted Halls"
+		?foe = pallas
+			dashBlocked = true
+	:?currentLocation = "Boiling Mine"
+		?foe = bronze_guardian | foe = guardian
+			dashBlocked = true
+	:?currentLocation = "Icy Ridge"
+		?foe = yeti | foe = ice wall | foe = ice pillar
+			dashBlocked = true
+	:?currentLocation = "Temple"
+		?foe = nagaraja | foe = acronian
+			dashBlocked = true
+
+func EquipFinal()
+	?chosenBoth
+		equip @chosenBoth@
+	:?chosenMelee
+		?IsTwoHanded(chosenMelee)
+			equip @chosenMelee@
+		:
+			equipL @chosenMelee@
+	?chosenRanged & !chosenMelee & !chosenBoth
+		equip @chosenRanged@
+	?chosenOffhand & !chosenMelee & !chosenBoth
+		equipL @chosenOffhand@
+	?chosenShield & !chosenBoth & !IsTwoHanded(chosenMelee)
+		equipR @chosenShield@
+	?queuedActivation & item.CanActivate()
+		activate R
+
+?loc.begin
+	currentLocation = loc.name
+	currentPotion = item.potion
+
+?Type(mindFreezeUntil) = int & totalTime >= mindFreezeUntil
+	mindFreezeUntil = false
+dashBlocked = false
+
+CheckForAAC()
+AreaRules()
+UsePotion()
+ChooseEquipment()
+
+// Fire elemental is useful in every area when the fight is safely at range.
+?foe.count > 0 & foe.distance > 25 & summon.count = 0 & item.GetCooldown("fire_talisman") <= 0 & item.CanActivate()
+	?Has("fire talisman")
+		equipR fire talisman
+		activate R
+
+EquipFinal()

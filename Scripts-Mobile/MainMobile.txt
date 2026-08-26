@@ -1,0 +1,1053 @@
+// = CONFIG =
+// - MOBILE-SPECIFIC SETTINGS
+var isSpeedRunning = false
+var isStaffJumping = true
+var preferMelee = false
+var isPickPocketingWithSkeletonArm = true
+var isOnPPKillQuest = false
+var useAetherTalisman = false
+
+// - THRESHOLD VALUES
+var minCombatDistance = 25
+var smiteThreshold = 6
+var voidweaverThreshold = 6
+var dmgDebuffThreshold = 7
+var splashThreshold = 3
+var foeArmorThreshold = 50
+var fastArmorShieldMax = 14
+var strongArmorShieldMax = 26
+var maxPickPocketBuffs = 2
+var maxOverAvgToExitMult = 1.15
+var devourFireRuneThreshold = 3
+var devourFireRuneBossThreshold = 10
+
+// - ARSENAL
+var splashMeleeWeapon = "big aether sword U"
+var healthRuneA = "poison rune *10"
+var healthRuneB = "vigor rune *10"
+var antiArmorMeleeWeapon = "heavy hammer"
+var debuffDamageWeapon = "poison sword dP"
+var debuffDoTWeapon = "fire sword dF"
+var debuffChillWeapon = "ice sword dI"
+var magicRangedWeapon = "vigor staff"
+var lifeStealMeleeWeapon = false
+var lifeStealRangedWeapon = false
+var lifeStealShield = "vigor shield h"
+var icePillarWeaponA = "big aether sword U"
+var icePillarWeaponB = "moondial"
+var strongArmorShield = "compound shield +10"
+var fastArmorShield = getAlt(strongArmorShield)
+var iceWandA = "ice wand +14"
+var iceWandB = getAlt(iceWandA)
+var iceWandBossA = iceWandA
+var iceWandBossB = getAlt(iceWandBossA)
+var stoneHammerA = "stone hammer +10"
+var stoneHammerB = getAlt(stoneHammerA)
+
+// - DEFAULT EQUIPMENT
+var mainWeapon = "big aether sword U"
+var mainOffhand = false
+var mainTwoHanded = false
+var mainShield = strongArmorShield
+var mainRanged = "repeating crossbow"
+
+// - ELEMENTAL WEAPONS
+var elemWeapons = [
+  mainWeapon,            // NONE
+  "poison sword D",      // POISON (vs. Vigor)
+  "vigor sword D",       // VIGOR (vs. Aether)
+  "aether sword D",      // AETHER (vs. Fire)
+  "fire sword D",        // FIRE (vs. Ice)
+  "ice sword +9 D"       // ICE (vs. Poison)
+]
+
+var elemOffhand = [
+  mainOffhand,           // NONE
+  mainWeapon,            // POISON (vs. Vigor)
+  mainWeapon,            // VIGOR (vs. Aether)
+  mainWeapon,            // AETHER (vs. Fire)
+  mainWeapon,            // FIRE (vs. Ice)
+  getAlt(elemWeapons[5]) // ICE (vs. Poison)
+]
+
+var elemRanged = [
+  mainRanged,            // NONE
+  "poison crossbow D",   // POISON (vs. Vigor)
+  "vigor staff D",       // VIGOR (vs. Aether)
+  "aether crossbow D",   // AETHER (vs. Fire)
+  "fire crossbow D",     // FIRE (vs. Ice)
+  "ice crossbow D"       // ICE (vs. Poison)
+]
+
+var elemShields = [
+  mainShield,            // BASE
+  mainShield,            // POISON (vs. Vigor)
+  mainShield,            // VIGOR (vs. Aether)
+  mainShield,            // AETHER (vs. Fire)
+  mainShield,            // FIRE (vs. Ice)
+  mainShield             // ICE (vs. Poison)
+]
+
+// - POTIONS
+var locPotions = [
+  "defensive",   // Rocky Plateau
+  "vampiric",    // Deadwood Canyon
+  "lucky",       // Caves of Fear
+  "vampiric",    // Mushroom Forest
+  "vampiric",    // Haunted Halls
+  "strength",    // Boiling Mine
+  "lucky",       // Icy Ridge
+  "berserk"      // Temple
+]
+
+// ---- BOSSES ----
+var poisonDebuffThreshold = [
+  ^0,    // Dysangelos (Rocky Plateau)
+  ^1,    // Poena (Deadwood Canyon)
+  ^1,    // Bolesh (Caves of Fear)
+  ^0.25, // Morel (Mushroom Forest)
+  ^1,    // Pallas (Haunted Halls)
+  ^1,    // Bronze Guardian (Boiling Mine)
+  ^0.15, // Hrimnir (Icy Ridge)
+  ^0.15  // Nagaraja (Temple)
+]
+
+var iceDebuffThreshold = [
+  ^0.1,  // Dysangelos (Rocky Plateau)
+  ^1,    // Poena (Deadwood Canyon)
+  ^1,    // Bolesh (Caves of Fear)
+  ^0.1,  // Morel (Mushroom Forest)
+  ^0.1,  // Pallas (Haunted Halls)
+  ^1,    // Bronze Guardian (Boiling Mine)
+  ^1,    // Hrimnir (Icy Ridge)
+  ^1     // Nagaraja (Temple)
+]
+
+var fireDebuffThreshold = [
+  ^0.05, // Dysangelos (Rocky Plateau)
+  ^1,    // Poena (Deadwood Canyon)
+  ^1,    // Bolesh (Caves of Fear)
+  ^0.1,  // Morel (Mushroom Forest)
+  ^0.05, // Pallas (Haunted Halls)
+  ^1,    // Bronze Guardian (Boiling Mine)
+  ^0.15, // Hrimnir (Icy Ridge)
+  ^0.05  // Nagaraja (Temple)
+]
+
+var maskDebuffThreshold = [
+  ^0.15, // Dysangelos (Rocky Plateau)
+  ^1,    // Poena (Deadwood Canyon)
+  ^0.15, // Bolesh (Caves of Fear)
+  ^0.15, // Morel (Mushroom Forest)
+  ^0.15, // Pallas (Haunted Halls)
+  ^1,    // Bronze Guardian (Boiling Mine)
+  ^0.15, // Hrimnir (Icy Ridge)
+  ^1     // Nagaraja (Temple)
+]
+// = END CONFIG =
+
+var bardicheActivationDelay = 1
+var heavyHammerActivationDelay = 5
+
+var bosses = ["dysangelos", "poena", "bolesh", "morel", "pallas", "bronze_guardian", "yeti", "nagaraja"]
+var bossNoDebuffCheck = [false, false, false, false, "phase2", false, false, false]
+var locations = ["Rocky Plateau", "Deadwood Canyon", "Caves of Fear", "Mushroom Forest", "Haunted Halls",  "Boiling Mine", "Icy Ridge", "Temple"]
+var locElems = ["none",  "none", "poison", "vigor", "aether", "fire", "ice", "poison"]
+var elements = ["none", "vigor", "aether", "fire", "ice", "poison"]
+var counterElements = ["none", "poison", "vigor",  "aether", "fire", "ice"]
+var potions = ["experience","strength","healing","lightning","invisibility","cleansing","berserk","defensive","lucky","vampiric"]
+var ingredients = ["wood + wood", "stone + stone", "tar + tar", "bronze + bronze", "wood + stone", "wood + tar", "wood + bronze", "stone + tar", "stone + bronze", "tar + bronze"]
+var healingPotions = ["defensive", "vampiric", "cleansing", "healing"]
+var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
+var defensivePotions = ["invisibility", "cleansing", "defensive"]
+var utilityPotions = ["experience"]
+var ranges = ["melee", "close", "medium", "ranged", "screen"]
+var units = [5, 11, 16, 25, 35]
+
+func isHealingPotion(item)
+  for i = 0..(healingPotions.Count() - 1)
+    ?item = healingPotions[i]
+      return true
+  return false
+
+func isOffensivePotion(item)
+  for i = 0..(offensivePotions.Count() - 1)
+    ?item = offensivePotions[i]
+      return true
+  return false
+
+func isDefensivePotion(item)
+  for i = 0..(defensivePotions.Count() - 1)
+    ?item = defensivePotions[i]
+      return true
+  return false
+
+func Set(key, val)
+    storage.Set(key, val)
+  return val
+
+func Get(key)
+    return storage.Get(key)
+
+func Toggle(key)
+  Set(key, !Get(key))
+  return Get(key)
+
+func Cycle(key, vals)
+  var curVal = Get(key)
+  var index = vals.IndexOf(curVal)
+  ?index = vals.Count()
+    Set(key, vals[0])
+  :
+    Set(key, vals[index])
+
+func Has(key)
+  return storage.Has(key)
+
+func Incr(key)
+    storage.Incr(key)
+
+func AddTo(key, num)
+    storage.Incr(key, num)
+
+func Init()
+  InitSceneVars()
+  ?!Has("assignedLeft")
+    Set("assignedLeft", false)
+    Set("leftPriority", 0)
+  ?!Has("assignedBoth")
+    Set("assignedBoth", false)
+    Set("bothPriority", 0)
+  ?!Has("assignedRight")
+    Set("assignedRight", false)
+    Set("rightPriority", 0)
+  ?!Has("isActivating")
+    Set("isActivating", false)
+  ?!Has("mindFreeze")
+    Set("mindFreeze", false)
+
+func getAlt(weaponRef)
+  ?weaponRef = false
+    return false
+  var nameParts = string.Split(weaponRef, " ")
+  var altNameParts = []
+  for namePart : nameParts
+    ?string.IndexOf(namePart, "+") > -1
+      altNameParts.Add("-" + namePart)
+    :
+      altNameParts.Add(namePart)
+  var altWeapon = string.Join(" ", altNameParts)
+  ?item.GetCount(altWeapon) = 0
+    return false
+  return altWeapon
+
+var locName
+var hpMaxBase
+var itemPotion
+var buffsString
+var debuffsString
+var foeString
+var foeCount
+var foeDistance
+var foeDamage
+var foeBuffsString
+var foeDebuffsString
+var counterElement
+
+func InitSceneVars()
+  ?loc.begin | loc.loop
+    locName = loc.name
+    hpMaxBase = maxhp
+
+  itemPotion = item.potion
+  buffsString = buffs.string
+  debuffsString = debuffs.string
+  foeString = foe
+  foeCount = foe.count
+  foeDistance = foe.distance
+  foeDamage = foe.damage
+  foeBuffsString = foe.buffs.string
+  foeDebuffsString = foe.debuffs.string
+  counterElement = getCounterElement()
+
+func Reset(isLocStart)
+  InitLeft()
+  InitRight()
+  InitBoth()
+  Set("isActivating", false)
+
+  var mindFreeze = Get("mindFreeze")
+  ?mindFreeze
+    ?totalTime - mindFreeze > 30
+      Set("mindFreeze", false)
+
+  ?isLocStart
+    Set("assignedLeft", false)
+    Set("leftPriority", 0)
+    Set("assignedRight", false)
+    Set("rightPriority", 0)
+    Set("assignedBoth", false)
+    Set("bothPriority", 0)
+    Set("mindFreeze", false)
+
+func ActivateItem()
+  ?Get("isActivating")
+  ^ & [Get("assignedLeft"), Get("assignedRight"), Get("assignedBoth")].Contains(Get("isActivating"))
+  ^ & item.CanActivate()
+    activate R
+
+func InitLeft()
+  var stateWatch = 0
+  ?Get("leftPriority") >= 10
+    stateWatch = Get("leftPriority") / 10
+    ?item.left & Type(item.left.state) = int & item.left.state = stateWatch
+      return
+    :
+      Set("leftPriority", 0)
+
+  ?Get("leftPriority") < 4
+    Set("assignedLeft", false)
+    Set("leftPriority", 0)
+
+func InitRight()
+  var stateWatch = 0
+  ?Get("rightPriority") >= 10
+    stateWatch = Get("rightPriority") / 10
+    ?item.right & Type(item.right.state) = int & item.right.state = stateWatch
+      return
+    :
+      Set("rightPriority", 0)
+  ?Get("rightPriority") < 4
+    Set("assignedRight", false)
+    Set("rightPriority", 0)
+
+func InitBoth()
+  var stateWatch = 0
+  ?Get("bothPriority") >= 10
+    stateWatch = Get("bothPriority") / 10
+    ?item.left & Type(item.left.state) = int & item.left.state = stateWatch
+      return
+    :
+      Set("bothPriority", 0)
+  ?Get("bothPriority") < 4
+    Set("assignedBoth", false)
+    Set("bothPriority", 0)
+
+func AssignBoth(itemRef, priority)
+  ?priority <= 0
+    Set("bothPriority", 0)
+    return
+  ?Type(itemRef) = "string" & string.Size(itemRef) > 2
+    ?item.GetCount(itemRef) = 0
+      return
+  ?item.right = bardiche & item.GetCooldown("bardiche") > ((30 - bardicheActivationDelay) * 30)
+    return
+  ?item.right = heavy_hammer & item.GetCooldown("hammer") > ((22 - heavyHammerActivationDelay) * 30)
+    return
+  ?Get("bothPriority") <= priority & Get("leftPriority") <= priority & Get("rightPriority") <= priority
+    AssignLeft("", -1)
+    AssignRight("", -1)
+    Set("assignedBoth", itemRef)
+    Set("bothPriority", priority)
+
+func AssignLeft(itemRef, priority)
+  ?priority <= 0
+    Set("leftPriority", 0)
+    return
+  ?Type(itemRef) = "string" & string.Size(itemRef) > 2
+    ?item.GetCount(itemRef) = 0
+      return
+  ?item.right = bardiche & item.GetCooldown("bardiche") > ((30 - bardicheActivationDelay) * 30)
+    return
+  ?item.right = heavy_hammer & item.GetCooldown("hammer") > ((22 - heavyHammerActivationDelay) * 30)
+    return
+  ?isTwoHanded(itemRef)
+    AssignBoth(itemRef, priority)
+  :?Get("leftPriority") <= priority & Get("bothPriority") <= priority
+    AssignBoth("", -1)
+    Set("assignedLeft", itemRef)
+    Set("leftPriority", priority)
+
+func AssignRight(itemRef, priority)
+  ?priority <= 0
+    Set("rightPriority", 0)
+    return
+  ?Type(itemRef) = "string" & string.Size(itemRef) > 2
+    ?item.GetCount(itemRef) = 0
+      return
+  ?item.right = bardiche & item.GetCooldown("bardiche") > ((30 - bardicheActivationDelay) * 30)
+    return
+  ?item.right = heavy_hammer & item.GetCooldown("hammer") > ((22 - heavyHammerActivationDelay) * 30)
+    return
+  ?Get("rightPriority") <= priority & Get("bothPriority") <= priority
+    Set("assignedRight", itemRef)
+    Set("rightPriority", priority)
+
+func isValidActivation(param)
+  return param & [Get("assignedLeft"), Get("assignedRight"), Get("assignedBoth")].Contains(param)
+
+func AssignActivate(param)
+  ?isValidActivation(param)
+    Set("isActivating", param)
+
+func EquipItems()
+  ?Get("assignedLeft") ! false & Get("leftPriority") > 0 & item.GetCount(Get("assignedLeft")) > 0
+    equipL @Get("assignedLeft")@
+  ?Get("assignedRight") ! false & Get("rightPriority") > 0 & item.GetCount(Get("assignedRight")) > 0
+    equipR @Get("assignedRight")@
+  ?Get("assignedBoth") ! false & Get("bothPriority") > 0 & item.GetCount(Get("assignedBoth")) > 0
+    equip @Get("assignedBoth")@
+
+func breakBuff(buff)
+  var buffParts = string.Split(buff, ":")
+  buffParts[2] = int.Parse(buffParts[2])
+  buffParts[3] = int.Parse(buffParts[3])
+  return [buffParts[1], buffParts[2], buffParts[3]]
+
+func getBuffParts(buffName, buffString)
+  var buffStrings = string.split(buffString, ",")
+  for buffStr : buffStrings
+    var buffParts = string.Split(buffStr, ":")
+    ?Type(buffParts) = Type([]) & buffParts.Count() = 4
+      ?string.IndexOf(buffParts[1], buffName) > -1
+        return [int.Parse(buffParts[2]), int.Parse(buffParts[3])]
+  return [0, 0]
+
+func xLookup(val, arr1, arr2)
+  ?Type(arr1) ! Type([])
+    Set("errorMessage", "'" + arr1 + "' is not an array")
+    return false
+  ?Type(arr2) ! Type([])
+    Set("errorMessage", "'" + arr2 + "' is not an array")
+    return false
+  var index = arr1.IndexOf(val)
+  ?index > -1
+    return arr2[index]
+  :
+    return false
+
+func getBuffCount(buffName)
+  return getBuffParts(buffName, buffsString)[0]
+
+func getDebuffCount(buffName)
+  return getBuffParts(buffName, debuffsString)[0]
+
+func getFoeDebuffCount(buffName)
+  return getBuffParts(buffName, foeDebuffsString)[0]
+
+func getArmor()
+  return math.Round((armor * 10) + armor.f) / 10
+
+func isCloseAs(range)
+  return foeDistance <= xLookup(range, ranges, units)
+
+func isFarAs(range)
+  return foeDistance >= xLookup(range, ranges, units)
+
+func isWithin(rangeA, rangeB)
+  var unitA = xLookup(rangeA, ranges, units)
+  var unitB = xLookup(rangeB, ranges, units)
+  return isInRange(unitA, unitB)
+
+func isInRange(min, max)
+  ?foeCount > 0
+    ?max > min
+      return foeDistance >= min & foeDistance <= max
+    :
+      return foeDistance >= min
+
+func isInState(stateNum, stateTime)
+  return foe.state = stateNum & foe.time >= stateTime
+
+func Dodge(isFreezingDash)
+  AssignBoth("mind", 3.5)
+  equip mind
+  ?isFreezingDash
+    Set("mindFreeze", totalTime)
+
+func getEndurance()
+  var percentFloat = 0.01
+  percentFloat = (1.0 * hp) / (1.0 * maxhp)
+  return percentFloat
+
+func getDashShield()
+  ?item.GetCount("bash") > 0 & item.GetCooldown("bash") <= 0
+  ^& foeString ! poena
+  ^& (foeCount > 5
+  ^   | (foeString ! immune_to_stun
+  ^      & (foeString = boss | foeDamage > 4))
+  ^  )
+    return "bash"
+  :?item.GetCount("dash") > 0
+    return "dash"
+  :
+    return false
+
+func canDash()
+  ?!getDashShield()
+    return false
+  ?Get("isDashBlocked")
+    return false
+  ?!isFacingBoss()
+  ^& (foeCount >= 10 | getEndurance() < 1 | armor < (0.5 * maxarmor))
+    return false
+
+  ?Get("mindFreeze")
+    return false
+
+  ?isInRange(9, 14) & foeString ! explode
+    return getDashShield()
+  return false
+
+func isDebuffing(threshold, debuff)
+  ?buffsString = berserk | buffsString = lucky | buffsString = strength
+    return false
+  ?foeBuffsString = protection
+    return false
+  ?!isCloseAs("close")
+    return false
+
+  for i = 0..(bossNoDebuffCheck.Count() - 1)
+    ?foeString = bosses[i] & foeString = bossNoDebuffCheck[i]
+      return false
+
+  var isBelowThreshold = (foe.hp + foe.armor) <= threshold * (foe.maxhp + foe.maxarmor)
+
+  ?debuff = "damage" & threshold ! 1 & hp < (0.25 * maxhp)
+    isBelowThreshold = false
+
+  ?isBelowThreshold
+    return false
+
+  ?debuff = "damage"
+    return foeDebuffsString ! damage & foeString ! immune_to_debuff_damage
+  :?debuff = "dot"
+    return foeDebuffsString ! dot
+  :?debuff = "chill"
+    return getFoeDebuffCount("chill") < 6 & foeString ! immune_to_debuff_chill
+  :?debuff = "armor"
+    return foe.maxarmor > 50 & foeDebuffsString ! fatigue & item.GetCooldown("hammer") <= 0 & item.CanActivate()
+  :?debuff = "feeble"
+    return foeDebuffsString ! feeble & item.GetCooldown("mask") <= 0 & item.CanActivate()
+
+func playerPosIsAtLeast(x)
+  var screenPos = screen.FromWorldX(pos.x)
+  return screenPos >= x
+
+func playerPosIsAtMost(x)
+  var screenPos = screen.FromWorldX(pos.x)
+  return screenPos <= x
+
+func toSeconds(frameCount)
+  return math.Round(frameCount / 30)
+
+func toTime(frameCount)
+  var numSeconds = toSeconds(frameCount)
+  var numMinutes = math.floor(numSeconds / 60)
+  numSeconds -= numMinutes * 60
+  var numHours = math.floor(numMinutes / 60)
+  numMinutes -= numHours * 60
+  ?numHours = 0
+    numHours = ""
+    ?numMinutes = 0
+      numMinutes = ""
+  numSeconds = numSeconds + ""
+  numMinutes = numMinutes + ""
+  numHours = numHours + ""
+  ?string.Size(numSeconds) = 1
+    numSeconds = "0" + numSeconds
+  ?(string.Size(numMinutes) + string.Size(numHours)) > 0
+    ?string.Size(numMinutes) = 0
+      numMinutes = "00:"
+    :?string.Size(numMinutes) = 1
+      numMinutes = numMinutes + ":"
+    ?string.Size(numHours) > 0
+      ?string.Size(numMinutes) = 2
+        numMinutes = "0" + numMinutes
+      numHours = numHours + ":"
+  return numHours + numMinutes + numSeconds
+
+func toPercent(num, max)
+  var percent = (100 * num) / max
+  return percent + "%"
+
+func toSimpleFloat(num)
+  return math.Round(num * 100) * 0.01
+
+func getFraction(num, denom)
+  return (1.0 * num) / denom
+
+func isAtLeastSecsLeft(secs)
+  var secsLeft = (loc.averageTime - totalTime) / 30
+  return secsLeft > secs
+
+func isLessThanSecsLeft(secs)
+  var secsLeft = (loc.averageTime - totalTime) / 30
+  return secs > secsLeft
+
+func isOverAvgTime()
+  ?maxOverAvgToExitMult = 0
+    return false
+  ?loc.averageTime
+    return getFraction(totalTime, loc.averageTime) > (totalTime * maxOverAvgToExitMult)
+  return false
+
+func getCounterElement()
+  var element = ""
+  var counterElement = ""
+  var resString = ""
+  var elementString = ""
+  ?foeCount > 0
+    for i = 1..5
+      element = elements[i]
+      counterElement = counterElements[i]
+      resString = string.Join("", ["adaptive_defense_", counterElement])
+      elementString = " " + element + " "
+      ?foeString = elementString & foeBuffsString ! resString
+        return counterElement
+  return false
+
+func getHealingPotion()
+  ?res.stone > 1500
+    return "defensive"
+  :?res.bronze > 1500
+    return "vampiric"
+  :?res.wood > 1500
+    return "cleansing"
+  :?res.tar > 3000
+    return "healing"
+  :?res.stone > res.wood & res.stone > res.bronze
+    return "defensive"
+  :?res.wood > res.stone & res.wood > res.bronze
+    return "cleansing"
+  :?res.bronze > res.stone & res.bronze > res.wood
+    return "vampiric"
+
+func brewPotion(potion)
+  ?itemPotion = potion
+    return
+  var ingred = xLookup(potion, potions, ingredients)
+  ?ingred = "wood + wood"
+    brew wood
+  :?ingred = "stone + stone"
+    brew stone
+  :?ingred = "tar + tar"
+    brew tar
+  :?ingred = "bronze + bronze"
+    brew bronze
+  :?ingred = "wood + stone"
+    brew wood + stone
+  :?ingred = "wood + tar"
+    brew wood + tar
+  :?ingred = "wood + bronze"
+    brew wood + bronze
+  :?ingred = "stone + tar"
+    brew stone + tar
+  :?ingred = "stone + bronze"
+    brew stone + bronze
+  :?ingred = "tar + bronze"
+    brew tar + bronze
+
+func runDefensiveHeal()
+  ?maxhp > (1.25 * hpMaxBase)
+    activate potion
+    AssignLeft("", -1)
+    AssignRight("", -1)
+  :?getEndurance() <= 0.5
+    AssignLeft(healthRuneA, 4)
+    ?healthRuneB
+      AssignRight(healthRuneB, 4)
+
+func isFacingBoss()
+  ?isInRange(0, 35)
+    ?foeString = dysangelos | (locName = deadwood & foeString = boss) | foeString = bolesh | (locName = mushroom & foeString = boss) | foeString = pallas | foeString = bronze_guardian | foeString = hrímnir | foeString = nagaraja
+      return true
+  return false
+
+func checkForAAC()
+  ?item.left.state = 3
+    equipL wand *0
+  ?item.right.state = 3
+    equipR shield *0
+
+func isRangedWeapon(itemid)
+  return itemid = runestone | itemid = crossbow | itemid = wand | itemid = fire_talisman | itemid = aether_talisman | itemid = staff | itemid = ouroboros
+func isTwoHanded(itemid)
+  return itemid = crossbow | itemid = heavy hammer | itemid = heavy_hammer | itemid = staff | itemid = bardiche | itemid = blade of the fallen god | itemid = skeleton arm
+func isUsingRanged()
+  return isRangedWeapon(itemLeft) | isRangedWeapon(itemRight)
+
+func isShortOfBestTimeBy(secs)
+  return (loc.bestTime - totalTime) / 30 > secs
+
+func isInCombat()
+  return foeCount > 0 & foeDistance <= minCombatDistance & ai.enabled
+
+func getMainWeapon()
+  ?isInCombat()
+    ?splashMeleeWeapon & foeCount > splashThreshold & isCloseAs("melee")
+      return splashMeleeWeapon
+    ?antiArmorMeleeWeapon & foe.armor > foeArmorThreshold & isCloseAs("melee")
+      return antiArmorMeleeWeapon
+    ?counterElement
+      return elemWeapons[counterElements.IndexOf(counterElement)]
+    ?foeDebuffsString = "stun" & mainTwoHanded
+      return mainTwoHanded
+    return mainWeapon
+  ?armor < fastArmorShieldMax
+    return "quest"
+  ?hp < maxhp
+    return "ouroboros"
+  ?ai.walking
+    return "triskelion"
+  return "quest"
+
+func getMainOffhandWeapon()
+  ?!isInCombat()
+    return false
+  ?foe.state <= 1
+    return false
+  ?isTwoHanded(Get("assignedBoth") | Get("assignedLeft"))
+    return false
+  var offhandWeapon
+  ?counterElement
+    offhandWeapon = elemOffhand[counterElements.IndexOf(counterElement)]
+  ?!offhandWeapon
+    offhandWeapon = mainOffhand
+  ?!offhandWeapon
+    return false
+  // ?offhandWeapon = mainOffhand & Get("assignedLeft") ! mainWeapon
+  //   return mainWeapon
+  return offhandWeapon
+
+func getMainShield()
+  ?isInCombat()
+    ?isTwoHanded(Get("assignedBoth") | Get("assignedLeft"))
+      return false
+    var offhandWeapon = getMainOffhandWeapon()
+    ?offhandWeapon & (
+      ^ foeDebuffsString = "stun"
+      ^|(armor > strongArmorShieldMax & foeString ! acronian)
+      ^| foeString = dysangelos
+    ^)
+      return offhandWeapon
+  ?fastArmorShield & armor < fastArmorShieldMax
+    return fastArmorShield
+  ?counterElement
+    return elemShields[counterElements.IndexOf(getCounterElement())]
+  return mainShield
+
+func getMainRanged()
+  var counterElement
+  var elemRangedWeapon
+  ?foeString = dysangelos
+    return getMainWeapon()
+  ?preferMelee & foeString ! explode & foeString ! bolesh & foeString ! bronze_guardian & foeString ! yeti
+    return getMainWeapon()
+  counterElement = getCounterElement()
+  ?counterElement & foeString ! "immune_to_" + counterElement & (foe.hp + foe.armor) > 200
+    elemRangedWeapon = elemRanged[counterElements.IndexOf(counterElement)]
+    ?elemRangedWeapon
+      return elemRangedWeapon
+  return mainRanged
+
+Init()
+Reset(false)
+
+var locPotion = xLookup(loc.name, locations, locPotions)
+
+var debuffDmgThreshold = xLookup(loc.name, locations, poisonDebuffThreshold)
+var debuffChillThreshold = xLookup(loc.name, locations, iceDebuffThreshold)
+var debuffDotThreshold = xLookup(loc.name, locations, fireDebuffThreshold)
+var debuffFeebleThreshold = xLookup(loc.name, locations, maskDebuffThreshold)
+
+var dmgDebuff = 0
+dmgDebuff = getDebuffCount("debuff_duration_damage") + getDebuffCount("spider_debuff_damage")
+
+?loc.begin & itemPotion ! locPotion
+  brewPotion(locPotion)
+?loc.begin | loc.loop
+  Reset(true)
+
+checkForAAC()
+AssignRight(getMainShield(), 1)
+AssignLeft(getMainWeapon(), 1)
+?maxOverAvgToExitMult > 0 & isOverAvgTime()
+  loc.Leave()
+
+Set("isDashBlocked", false)
+
+?foeCount = 0 | foeDistance > minCombatDistance
+  ?isStaffJumping & item.GetCooldown("quarterstaff") <= 0 & item.CanActivate() & ai.enabled
+    AssignBoth("quarterstaff", 20)
+    AssignActivate("quarterstaff")
+  :?pickup.distance < 13
+    AssignLeft("star", 2)
+  :?getEndurance() < 1
+    AssignLeft("ouroboros", 2)
+  :?!isSpeedRunning & !isStaffJumping & harvest.distance < 9
+    ?harvest = Boulder
+      AssignBoth("shovel", 2)
+    :
+      ?item.GetCooldown("hatchet") <= 0 & harvest.distance <= 4
+        AssignRight("hatchet", 2)
+        AssignActivate("hatchet")
+      :
+        AssignRight("hatchet", 2)
+  :?item.GetCount("quest") > 0 & armor < fastArmorShieldMax
+    AssignLeft("quest", 2)
+  :?item.GetCount("triskelion") > 0
+    AssignLeft("triskelion", 2)
+:?ai.enabled
+  ?foeString ! immune_to_ranged & isCloseAs("ranged") & foeString ! dysangelos & foeString ! acronian
+
+    ?foeString = explode
+      ?iceWandA & iceWandB & getBuffCount("smite") > 0
+      ^& foeString ! immune_to_debuff_chill
+      ^& getFoeDebuffCount("chill") < 6
+        AssignLeft(iceWandA, 3.5)
+        AssignRight(iceWandB, 3.5)
+        Set("isDashBlocked", true)
+      :
+        AssignLeft(getMainRanged(), 3.5)
+
+    :?isFacingBoss() & (
+      ^foeString ! dysangelos
+      ^&foeString ! nagaraja
+      ^&foeString ! poena
+    ^)
+      ?item.CanActivate() & (foeString ! bronze_guardian | foe.state > 1)
+        ?iceWandBossA & iceWandBossB & getBuffCount("smite") > 0
+        ^& foeString ! immune_to_debuff_chill
+        ^& getFoeDebuffCount("chill") < 6
+          AssignLeft(iceWandBossA, 2.5)
+          AssignRight(iceWandBossB, 2.5)
+        :?isWithin("close", "ranged")
+          AssignLeft(getMainRanged(), 2.5)
+
+    :?foeString = magic_vulnerability
+     ^| foeString = immune_to_physical
+     ^| (
+     ^    isFarAs("close")
+     ^    & foeString ! wall & foeString ! pillar
+     ^  )
+      var weapon
+      var priority
+      weapon = getMainRanged()
+      priority = 2.5
+      ?foeString = magic_vulnerability
+        Set("isDashBlocked", true)
+        weapon = magicRangedWeapon
+        priority = 3
+      :?foeString = immune_to_physical
+        weapon = magicRangedWeapon
+        priority = 3
+
+      ?iceWandA & iceWandB & getBuffCount("smite") > 0
+      ^&(foeCount > 5
+      ^  | (foeString ! spawner
+      ^    & getFoeDebuffCount("chill") < 6
+      ^    & foeString ! immune_to_debuff_chill ) )
+        AssignLeft(iceWandA, priority)
+        AssignRight(iceWandB, priority)
+      :?dmgDebuff <= dmgDebuffThreshold
+       ^& debuffsString ! yeti_chill
+        AssignLeft(weapon, priority - 0.5)
+
+
+
+  :?isStaffJumping & !Get("isDashBlocked") &!Get("mindFreeze")
+  ^ & item.GetCooldown("quarterstaff") <= 0 & item.CanActivate()
+  ^ & (foeString ! bronze_guardian | isInState(33, 10))
+  ^ & (foeString ! explode | foeString ! bomb cart)
+    AssignBoth("quarterstaff", 20)
+    AssignActivate("quarterstaff")
+
+  ?foeString ! immune_to_physical & foeString ! acronian & foeString ! dysangelos
+  ^& (foe.armor + foe.hp) > 300
+  ^& isCloseAs("melee")
+  ^& item.GetCooldown("bardiche") <= 0 & item.CanActivate()
+    AssignBoth("bardiche", 20)
+    AssignActivate("bardiche")
+
+  ?item.GetCooldown("blade") <= 0 & item.canActivate()
+    ?isCloseAs("ranged")
+    ^& foeCount > smiteThreshold
+    ^& foeString ! spawner
+    ^& (isAtLeastSecsLeft(120) | isLessThanSecsLeft(90))
+      AssignBoth("blade of the fallen god", 3)
+      AssignActivate("blade of the fallen god")
+
+  ?summon.count = 0
+  ^& item.GetCooldown("fire_talisman") <= 0 & item.CanActivate()
+  ^& isFarAs("medium")
+  ^& foeString ! poena
+    ?!useAetherTalisman
+      AssignRight("fire_talisman", 20)
+      AssignActivate("fire_talisman")
+    :
+      // TODO: assign aether talisman.
+
+  // TODO: activate voidweaver if aether talisman is equiped.
+
+  ?isFacingBoss()
+
+    ?itemPotion ! empty & item.CanActivate()
+      ?isHealingPotion(itemPotion)
+        ?buffsString ! berserk & buffsString ! lucky & buffsString ! strength
+          ?itemPotion = cleansing & debuffs.count > 15
+            activate potion
+          :?itemPotion = defensive & healthRuneA
+            runDefensiveHeal()
+          :?getEndurance() < 0.5
+            activate potion
+        :?getEndurance() < 0.2
+          activate potion
+
+      ?isOffensivePotion(itemPotion)
+        ?isUsingRanged() | isCloseAs("melee")
+          ?foeString = bronze_guardian
+            activate potion
+          :?foeString = nagaraja
+            activate potion
+          :?foeString = bolesh
+            activate potion
+          :?foeString = yeti
+            ?foe.armor = 0
+              activate potion
+          :?foeString = dysangelos
+            ?isInState(32, 1)
+              activate potion
+          :?foeString = poena
+            ?debuffsString ! stun & !isInState(2, 0)
+              activate potion
+          :?foe.state > 1
+            activate potion
+
+    ?devourFireRuneBossThreshold > 0
+    ^& summon.GetId() = cinderwisp
+    ^& summon.GetVar("ignition") >= devourFireRuneBossThreshold
+      activate cinderwisp
+
+    ?foe.armor > 0 & item.GetCount("heavy hammer") > 0 & isCloseAs("melee")
+      ?item.GetCooldown("hammer") <= 0 & item.CanActivate()
+        AssignBoth("heavy hammer", 20)
+        AssignActivate("heavy hammer")
+      :
+        AssignBoth("heavy hammer", 2)
+
+    ?foeString = immune_to_physical
+      ?iceWandBossA & iceWandBossB
+      ^& getBuffCount("smite") > 0
+        AssignLeft(iceWandBossA, 3)
+        AssignRight(iceWandBossB, 3)
+      :
+        AssignLeft(magicRangedWeapon, 3)
+
+    :?debuffDamageWeapon & item.GetCount(debuffDamageWeapon) > 0 & isDebuffing(debuffDmgThreshold, "damage")
+      AssignRight("cultist mask", 3)
+      AssignLeft(debuffDamageWeapon, 3)
+    :?debuffDoTWeapon & item.GetCount(debuffDoTWeapon) & isDebuffing(debuffDotThreshold, "dot")
+      AssignRight("cultist mask", 3)
+      AssignLeft(debuffDoTWeapon, 3)
+    :?debuffChillWeapon & item.GetCount(debuffChillWeapon) & isDebuffing(debuffChillThreshold, "chill")
+      AssignRight("cultist mask", 3)
+      AssignLeft(debuffChillWeapon, 3)
+    :?item.GetCount("heavy hammer") > 0 & isDebuffing(1, "armor")
+      AssignBoth("heavy hammer", 20)
+      AssignActivate("heavy hammer")
+    :?item.GetCount("mask") > 0 & isDebuffing(debuffFeebleThreshold, "feeble")
+      AssignRight("cultist mask", 20)
+      AssignActivate("cultist mask")
+
+    :?foeString = nagaraja
+    ^& foe.state > 1
+      AssignLeft(getMainWeapon(), 2)
+      AssignRight(getMainOffhandWeapon(), 2)
+    :?icePillarWeaponA
+    ^& foeString = ice wall
+      AssignLeft(icePillarWeaponA, 2.6)
+      ?icePillarWeaponB
+        AssignRight(icePillarWeaponB, 2.6)
+    :?stoneHammerA & stoneHammerB
+    ^& foeString = poena
+      AssignLeft(stoneHammerA, 3.4)
+      AssignRight(stoneHammerB, 3.4)
+    :?foeString = bolesh
+      Set("isDashBlocked", true)
+      AssignBoth(getMainRanged(), 3.5)
+    :?foeString = pallas
+    ^& foeString = phase2
+      AssignRight(lifeStealShield, 2)
+    :?foeString = yeti
+    ^& (isInState(133, 0) ! isInState(143, 0))
+      AssignBoth(getMainRanged(), 3.5)
+    :?foeString = dysangelos & foeString = phase3
+      ?item.GetCount("heavy hammer") > 0 & isInState(32, 0) & foeDamage < 3 & item.GetCooldown("hammer") <= 0
+        AssignBoth("heavy hammer", 20)
+        AssignActivate("heavy hammer")
+
+    ?item.GetCooldown("mind") <= 0
+      ?foeString = dysangelos & foeString = phase1 & isInState(33, 26) & foeDamage < 5
+      ^| foeString = xyloalgia & isInState(33, 15)
+        Dodge(false)
+      :?foeString = dysangelos & foeString = phase3 &
+        ^((item.GetCount("heavy hammer") = 0 | foeDebuffsString = fatigue) & isInState(32, 40) | isInState(115, 60))
+      ^|foeString = dysangelos & foeString = phase3 & isInState(115, 60)
+      ^|foeString = nagaraja & isInState(112, 53)
+      ^|foeString = bronze_guardian & isInState(32, 10)
+      ^|foeString = pallas & foeString = phase1 & isInState(32, 99)
+        Dodge(true)
+
+  :? isCloseAs("ranged")
+
+    ?devourFireRuneThreshold > 0
+    ^& summon.GetId() = cinderwisp
+    ^& summon.GetVar("ignition") >= devourFireRuneThreshold
+    ^& isShortOfBestTimeBy(90)
+      activate cinderwisp
+
+    ?isPickPocketingWithSkeletonArm = true
+    ^& (preferMelee | isCloseAs("melee"))
+    ^& item.GetCooldown("skeleton_arm") <= 0
+    ^& item.CanActivate()
+    ^& !(locName = temple & foeString = acronian)
+    ^& foeString ! immune_to_physical
+      AssignBoth("skeleton", 3.2)
+      ?getBuffCount("pick_pocket") >= maxPickPocketBuffs
+      ^& item.CanActivate()
+      ^& (!isOnPPKillQuest | (foe.armor + foe.hp) <= 10 & foe.hp > 0)
+        AssignActivate("skeleton")
+
+    ?(foeString = ice pillar | foeString = ice wall) & isCloseAs("ranged") & icePillarWeaponA
+      AssignLeft(icePillarWeaponA, 3)
+      ?icePillarWeaponB
+        AssignRight(icePillarWeaponB, 3)
+
+    ?foeString = acronian & locName = temple
+      AssignLeft(getMainWeapon(), 2)
+      ?getMainOffhandWeapon()
+        AssignRight(getMainOffhandWeapon(), 2)
+      ?item.GetCooldown("mind") <= 0
+      ^& armor < foeDamage
+      ^& isInState(32, 6)
+        Dodge(false)
+
+    ?foeString = bomb cart
+      ?foeDistance < 7
+        Dodge(false)
+        equip mind
+      :?isInRange(11, 15)
+        equipR dash
+
+  ?canDash()
+    AssignRight(canDash(), 3.5)
+
+?isHealingPotion(itemPotion) & getEndurance() < 0.25
+  ?itemPotion = defensive & healthRuneA
+    runDefensiveHeal()
+  :
+    activate potion
+
+EquipItems()
+ActivateItem()
