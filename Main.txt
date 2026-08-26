@@ -29,7 +29,7 @@ var physicalRangedWeapons = ["ice staff +11", "ice staff", "aether staff +11", "
 var shields = ["aether shield +13", "towering shield +11", "fire shield +9", "poison shield +9", "dashing shield +10", "bashing shield *7"]
 var dashShields = ["dashing shield +10", "bashing shield *7"]
 var armorBreakWeapons = ["heavy hammer +9", "heavy hammer"]
-var splashWeapons = ["big aether sword +10", "bardiche +11", "big vigor sword"]
+var splashWeapons = ["big aether sword +10", "big aether sword U", "bardiche +11", "big vigor sword"]
 var debuffPoison = ["poison sword dP"]
 var debuffFire = ["fire sword dF"]
 var debuffIce = ["ice sword dI"]
@@ -96,7 +96,7 @@ func CounterWeapon(counter)
 	?counter = "vigor"
 		return GetOwned(["vigor hammer +11", "vigor sword +11", "vigor staff +6"])
 	?counter = "aether"
-		return GetOwned(["aether hammer +11", "aether sword +11", "big aether sword +10"])
+		return GetOwned(["aether hammer +11", "aether sword +11", "big aether sword +10", "big aether sword U"])
 	?counter = "fire"
 		return GetOwned(["fire hammer +11", "fire sword +11", "fire talisman"])
 	?counter = "ice"
@@ -104,7 +104,7 @@ func CounterWeapon(counter)
 	return false
 
 func IsTwoHanded(itemName)
-	return itemName = "big aether sword +10" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "ice staff +11" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11" | itemName = "fire talisman" | itemName = "aether talisman"
+	return itemName = "big aether sword +10" | itemName = "big aether sword U" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "aether staff" | itemName = "ice staff +11" | itemName = "ice staff" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11" | itemName = "fire talisman" | itemName = "aether talisman"
 
 func EquipLeft(itemName)
 	?Has(itemName) & !chosenOffhand
@@ -163,11 +163,16 @@ func ChooseEquipment()
 	?foe = insect | foe = beetle | foe = wasp
 		chosenMelee = false
 		chosenRanged = GetOwned(rangedWeapons)
+		?!chosenRanged
+			chosenMelee = GetOwned(meleeWeapons)
 
 	?foe.distance > 11 & foe.distance <= 25 & chosenRanged
 		chosenMelee = false
 	?foe.distance > 25
 		chosenMelee = false
+	?!chosenMelee & !chosenRanged & foe.count > 0
+		// Never enter combat with only a shield: use the strongest owned melee fallback.
+		chosenMelee = GetOwned(meleeWeapons)
 
 	?foe.buffs.string ! protection & CloseAs("close") & buffs.string ! berserk & buffs.string ! lucky & buffs.string ! strength
 		?foe.debuffs.string ! damage
