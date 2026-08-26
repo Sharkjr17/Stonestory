@@ -243,11 +243,11 @@ func ChooseEquipment()
 		chosenMelee = false
 		chosenOffhand = GetOwned(["star stone"])
 		chosenShield = GetOwned(["triskelion"])
-		:?harvest = Boulder
+		?harvest = Boulder
 			chosenBoth = GetOwned(["shovel"])
-		:?harvest = Tree
+		?harvest = Tree
 			chosenShield = GetOwned(["triskelion"])
-		:?pickup & pickup.distance < 13
+		?pickup & pickup.distance < 13
 			chosenOffhand = GetOwned(["star stone", "star"])
 
 func UsePotion()
