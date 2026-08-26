@@ -86,7 +86,7 @@ func CounterElement()
 			var element = elements[i]
 			var counter = counterElements[i]
 			var defenseBuff = "adaptive_defense_" + counter
-			?foe = (" " + element + " ") & foe.buffs.string ! defenseBuff
+			?foe = element & foe.buffs.string ! defenseBuff
 				return counter
 	return false
 
@@ -104,7 +104,7 @@ func CounterWeapon(counter)
 	return false
 
 func IsTwoHanded(itemName)
-	return itemName = "big aether sword +10" | itemName = "big aether sword U" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "aether staff" | itemName = "ice staff +11" | itemName = "ice staff" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11" | itemName = "fire talisman" | itemName = "aether talisman"
+	return itemName = "big aether sword +10" | itemName = "big aether sword U" | itemName = "big vigor sword" | itemName = "heavy hammer +9" | itemName = "heavy hammer" | itemName = "bardiche +11" | itemName = "aether staff +11" | itemName = "aether staff" | itemName = "ice staff +11" | itemName = "ice staff" | itemName = "vigor staff *8 +6" | itemName = "vigor staff +6" | itemName = "ice wand *2 +11"
 
 func EquipLeft(itemName)
 	?Has(itemName) & !chosenOffhand
@@ -160,7 +160,7 @@ func ChooseEquipment()
 		chosenMelee = GetOwned(physicalRangedWeapons)
 	?foe = immune_to_ranged
 		chosenRanged = false
-	?foe = insect | foe = beetle | foe = wasp
+	?foe = swarm | foe = insect
 		chosenMelee = false
 		chosenRanged = GetOwned(rangedWeapons)
 		?!chosenRanged
@@ -189,8 +189,10 @@ func ChooseEquipment()
 				chosenMelee = ice
 		:?foe.debuffs.string ! feeble & (Has("cult mask") | Has("mask")) & item.GetCooldown("mask") <= 0
 			?Has("cult mask")
+				chosenShield = "cult mask"
 				QueueActivate("cult mask")
 			:
+				chosenShield = "mask"
 				QueueActivate("mask")
 
 	?foe.count > 0 & CloseAs("close") & item.GetCooldown("bash") <= 0 & !dashBlocked
@@ -238,6 +240,9 @@ func ChooseEquipment()
 			chosenMelee = GetOwned(["shovel", "triskelion", "quest"])
 		:?harvest = Tree
 			chosenMelee = GetOwned(["hatchet", "triskelion", "quest"])
+		:?pickup & pickup.distance < 13
+			chosenMelee = false
+			chosenOffhand = GetOwned(["star stone", "star"])
 
 func UsePotion()
 	?item.potion ! empty
@@ -284,7 +289,10 @@ func EquipFinal()
 		:
 			equipL @chosenMelee@
 	?chosenRanged & !chosenMelee & !chosenBoth
-		equip @chosenRanged@
+		?IsTwoHanded(chosenRanged)
+			equip @chosenRanged@
+		:
+			equipR @chosenRanged@
 	?chosenOffhand & !chosenMelee & !chosenBoth
 		equipL @chosenOffhand@
 	?chosenShield & !chosenBoth & !IsTwoHanded(chosenMelee)
@@ -306,7 +314,7 @@ UsePotion()
 ChooseEquipment()
 
 // Fire elemental is useful in every area when the fight is safely at range.
-?foe.count > 0 & foe.distance > 25 & summon.count = 0 & item.GetCooldown("fire_talisman") <= 0 & item.CanActivate()
+	?foe.count > 0 & foe.distance > 25 & summon.count = 0 & item.GetCooldown("talisman_fire") <= 0 & item.CanActivate()
 	?Has("fire talisman")
 		equipR fire talisman
 		activate R
