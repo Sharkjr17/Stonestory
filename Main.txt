@@ -21,11 +21,11 @@ var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
 
 // Ordered from preferred to fallback.  GetOwned() ignores anything not in inventory.
 var meleeWeapons = [
-	"big aether sword +10", "big vigor sword", "poison hammer +11", "vigor hammer +11",
+	"big aether sword +10", "big aether sword U", "big vigor sword", "poison hammer +11", "poison hammer",
 	"fire hammer +11", "ice hammer +12", "ice sword +11", "heavy hammer +9", "bardiche +11"
 ]
-var rangedWeapons = ["aether staff +11", "ice staff +11", "vigor staff *8 +6", "vigor staff +6", "fire talisman", "aether talisman"]
-var physicalRangedWeapons = ["ice staff +11", "aether staff +11", "vigor staff *8 +6", "vigor staff +6"]
+var rangedWeapons = ["aether staff +11", "aether staff", "ice staff +11", "ice staff", "vigor staff *8 +6", "vigor staff +6", "fire talisman", "aether talisman"]
+var physicalRangedWeapons = ["ice staff +11", "ice staff", "aether staff +11", "aether staff", "vigor staff *8 +6", "vigor staff +6"]
 var shields = ["aether shield +13", "towering shield +11", "fire shield +9", "poison shield +9", "dashing shield +10", "bashing shield *7"]
 var dashShields = ["dashing shield +10", "bashing shield *7"]
 var armorBreakWeapons = ["heavy hammer +9", "heavy hammer"]
@@ -160,6 +160,9 @@ func ChooseEquipment()
 		chosenMelee = GetOwned(physicalRangedWeapons)
 	?foe = immune_to_ranged
 		chosenRanged = false
+	?foe = insect | foe = beetle | foe = wasp
+		chosenMelee = false
+		chosenRanged = GetOwned(rangedWeapons)
 
 	?foe.distance > 11 & foe.distance <= 25 & chosenRanged
 		chosenMelee = false
@@ -221,14 +224,15 @@ func ChooseEquipment()
 			mindFreezeUntil = totalTime + 60
 
 	?!foe.count | foe.distance > 25
+		// Always assign a movement-capable left-hand item out of combat.
+		// This also replaces a stale star/ouroboros left in the hand.
+		chosenMelee = GetOwned(["triskelion", "quest"])
 		?hp < maxhp
-			chosenOffhand = GetOwned(["ouroboros"])
-		:?pickup.distance < 13
-			chosenOffhand = GetOwned(["star"])
+			chosenMelee = GetOwned(["ouroboros", "triskelion", "quest"])
 		:?harvest = Boulder
-			chosenMelee = GetOwned(["shovel"])
+			chosenMelee = GetOwned(["shovel", "triskelion", "quest"])
 		:?harvest = Tree
-			chosenMelee = GetOwned(["hatchet"])
+			chosenMelee = GetOwned(["hatchet", "triskelion", "quest"])
 
 func UsePotion()
 	?item.potion ! empty
