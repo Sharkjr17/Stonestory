@@ -22,10 +22,11 @@ var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
 // Ordered from preferred to fallback.  GetOwned() ignores anything not in inventory.
 var meleeWeapons = [
 	"big aether sword +10", "big aether sword U", "big vigor sword", "poison hammer +11", "poison hammer",
-	"fire hammer +11", "ice hammer +12", "ice sword +11", "heavy hammer +9", "bardiche +11"
+	"fire hammer +11", "ice hammer +12", "ice sword +11", "heavy hammer +9", "bardiche +11",
+	"big aether sword", "big vigor sword", "poison hammer", "vigor hammer", "fire hammer", "ice hammer", "ice sword", "heavy hammer", "bardiche"
 ]
-var rangedWeapons = ["aether staff +11", "aether staff", "ice staff +11", "ice staff", "vigor staff *8 +6", "vigor staff +6", "fire talisman", "aether talisman"]
-var physicalRangedWeapons = ["ice staff +11", "ice staff", "aether staff +11", "aether staff", "vigor staff *8 +6", "vigor staff +6"]
+var rangedWeapons = ["aether staff +11", "aether staff", "ice staff +11", "ice staff", "vigor staff *8 +6", "vigor staff +6", "vigor staff", "fire talisman", "aether talisman"]
+var physicalRangedWeapons = ["ice staff +11", "ice staff", "aether staff +11", "aether staff", "vigor staff *8 +6", "vigor staff +6", "vigor staff"]
 var shields = ["aether shield +13", "towering shield +11", "fire shield +9", "poison shield +9", "dashing shield +10", "bashing shield *7"]
 var dashShields = ["dashing shield +10", "bashing shield *7"]
 var armorBreakWeapons = ["heavy hammer +9", "heavy hammer"]
@@ -239,7 +240,7 @@ func ChooseEquipment()
 		:?harvest = Boulder
 			chosenMelee = GetOwned(["shovel", "triskelion", "quest"])
 		:?harvest = Tree
-			chosenMelee = GetOwned(["hatchet", "triskelion", "quest"])
+			chosenMelee = GetOwned(["triskelion", "quest"])
 		:?pickup & pickup.distance < 13
 			chosenMelee = false
 			chosenOffhand = GetOwned(["star stone", "star"])
@@ -255,28 +256,28 @@ func UsePotion()
 
 func AreaRules()
 	// Area checker: these boss rules run only in the named area.
-	?currentLocation = "Rocky Plateau"
+	?loc = rocky
 		?foe = dysangelos | foe = acronian
 			dashBlocked = true
-	:?currentLocation = "Deadwood Canyon"
+	:?loc = deadwood
 		?foe = poena | foe = xyloalgia
 			dashBlocked = true
-	:?currentLocation = "Caves of Fear"
+	:?loc = caves
 		?foe = bolesh | foe = ceiling
 			dashBlocked = true
-	:?currentLocation = "Mushroom Forest"
+	:?loc = fungus
 		?foe = morel
 			dashBlocked = true
-	:?currentLocation = "Haunted Halls"
+	:?loc = undead
 		?foe = pallas
 			dashBlocked = true
-	:?currentLocation = "Boiling Mine"
+	:?loc = mine
 		?foe = bronze_guardian | foe = guardian
 			dashBlocked = true
-	:?currentLocation = "Icy Ridge"
+	:?loc = ridge
 		?foe = yeti | foe = ice wall | foe = ice pillar
 			dashBlocked = true
-	:?currentLocation = "Temple"
+	:?loc = temple
 		?foe = nagaraja | foe = acronian
 			dashBlocked = true
 
@@ -295,7 +296,7 @@ func EquipFinal()
 			equipR @chosenRanged@
 	?chosenOffhand & !chosenMelee & !chosenBoth
 		equipL @chosenOffhand@
-	?chosenShield & !chosenBoth & !IsTwoHanded(chosenMelee)
+	?chosenShield & !chosenBoth & !chosenMelee & !chosenRanged
 		equipR @chosenShield@
 	?queuedActivation & item.CanActivate()
 		activate R
@@ -314,7 +315,7 @@ UsePotion()
 ChooseEquipment()
 
 // Fire elemental is useful in every area when the fight is safely at range.
-	?foe.count > 0 & foe.distance > 25 & summon.count = 0 & item.GetCooldown("talisman_fire") <= 0 & item.CanActivate()
+?foe.count > 0 & foe.distance > 25 & summon.count = 0 & item.GetCooldown("talisman_fire") <= 0 & item.CanActivate()
 	?Has("fire talisman")
 		equipR fire talisman
 		activate R
