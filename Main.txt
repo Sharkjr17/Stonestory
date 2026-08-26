@@ -21,8 +21,9 @@ var offensivePotions = ["strength", "lightning", "berserk", "lucky"]
 
 // Ordered from preferred to fallback.  GetOwned() ignores anything not in inventory.
 var meleeWeapons = ["big aether sword", "big vigor sword", "poison hammer", "vigor hammer", "fire hammer", "ice hammer", "ice sword", "heavy hammer", "bardiche"]
-var rangedWeapons = ["aether staff", "ice staff", "vigor staff", "fire talisman", "aether talisman"]
-var physicalRangedWeapons = ["ice staff", "aether staff", "vigor staff"]
+var rangedWeapons = ["staff", "aether staff", "ice staff", "vigor staff"]
+var physicalRangedWeapons = ["staff"]
+var beetleRangedWeapons = ["staff", "aether staff", "ice staff", "vigor staff"]
 var shields = ["aether shield", "towering shield", "fire shield", "poison shield", "dashing shield", "bashing shield", "shield"]
 var dashShields = ["dashing shield", "bashing shield"]
 var armorBreakWeapons = ["heavy hammer"]
@@ -42,6 +43,7 @@ var chosenBoth
 var queuedActivation
 var dashBlocked
 var preferMeleeNow
+var beetleEncounter
 var mindFreezeUntil
 
 func GetOwned(candidates)
@@ -102,7 +104,7 @@ func CounterWeapon(counter)
 	return false
 
 func IsTwoHanded(itemName)
-	return itemName = "big aether sword" | itemName = "big vigor sword" | itemName = "heavy hammer" | itemName = "bardiche" | itemName = "aether staff" | itemName = "ice staff" | itemName = "vigor staff" | itemName = "ice wand"
+	return itemName = "big aether sword" | itemName = "big vigor sword" | itemName = "heavy hammer" | itemName = "bardiche" | itemName = "staff" | itemName = "aether staff" | itemName = "ice staff" | itemName = "vigor staff" | itemName = "ice wand"
 
 func EquipLeft(itemName)
 	?Has(itemName) & !chosenOffhand
@@ -137,6 +139,7 @@ func ChooseEquipment()
 	chosenBoth = false
 	queuedActivation = false
 	preferMeleeNow = false
+	beetleEncounter = false
 
 	counterElement = CounterElement()
 	chosenMelee = CounterWeapon(counterElement)
@@ -159,9 +162,10 @@ func ChooseEquipment()
 		chosenMelee = GetOwned(physicalRangedWeapons)
 	?foe = immune_to_ranged
 		chosenRanged = false
-	?foe = swarm | foe = insect
+	?foe = swarm | foe = insect | foe = beetle
+		beetleEncounter = true
 		chosenMelee = false
-		chosenRanged = GetOwned(rangedWeapons)
+		chosenRanged = GetOwned(beetleRangedWeapons)
 		?!chosenRanged
 			chosenMelee = GetOwned(meleeWeapons)
 	?foe = immune_to_ranged
@@ -170,6 +174,9 @@ func ChooseEquipment()
 			chosenMelee = GetOwned(meleeWeapons)
 	?foe = residue
 		preferMeleeNow = true
+		chosenRanged = false
+		chosenMelee = GetOwned(meleeWeapons)
+	?beetleEncounter & foe = immune_to_ranged
 		chosenRanged = false
 		chosenMelee = GetOwned(meleeWeapons)
 
