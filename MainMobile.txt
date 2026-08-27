@@ -1,12 +1,18 @@
+// = TODO =
+/* get 2 stone hammers */
+/* redo bronze guardian logic */
+/* add close range bolesh */
+
+
 // = IMPORT =
 import Hats/JesterHat
 import Cosmetics/TwinSuns
 import Pets/CatBalloon
 
-import UI/BossGauge
-import UI/BetterInfo2
-import UI/ClickAbilities
-import UI/MusicBox
+// import UI/BossGauge
+// import UI/BetterInfo2
+// import UI/ClickAbilities
+// import UI/MusicBox
 
 // = CONFIG =
 // - MOBILE-SPECIFIC SETTINGS
@@ -46,9 +52,9 @@ var splashMeleeWeapon = "big aether sword U *10 +10"     // Name of unmaking spl
 var healthRuneA = "vigor rune *10 +1"                    // Name of first runestone enchanted with health bonus (for defensive potion combo)
 var healthRuneB = false                                  // Name of second runestone enchanted with health bonus (for defensive potion combo)
 var antiArmorMeleeWeapon = "heavy hammer"                // Name of melee weapon to equip vs. strong armor
-var debuffDamageWeapon = "poison sword dP"               // Name of weapon to apply debuff_damage (poison)
-var debuffDoTWeapon = "fire sword dF"                    // Name of weapon to apply debuff_dot (fire)
-var debuffChillWeapon = "ice sword dI"                   // Name of weapon to apply debuff_chill (ice)
+var debuffDamageWeapon = "poison hammer"                 // Name of weapon to apply debuff_damage (poison)
+var debuffDoTWeapon = "fire hammer"                      // Name of weapon to apply debuff_dot (fire)
+var debuffChillWeapon = "ice hammer"                     // Name of weapon to apply debuff_chill (ice)
 var magicRangedWeapon = "vigor staff"                    // Name of magical ranged weapon (able to hit physical-immune enemies)
 var lifeStealMeleeWeapon = false                         // Name of health-stealing melee weapon
 var lifeStealRangedWeapon = false                        // Name of health-stealing ranged weapon
@@ -58,9 +64,9 @@ var icePillarWeaponB = "moondial"                        // Name of offhand weap
 var strongArmorShield = "towering shield *10 +11"        // Name of "armor"-enchanted shield
 var fastArmorShield = getAlt(strongArmorShield)          // Name of "armor/sec"-enchanted shield
 var iceWandA = "ice wand *2 +11"                         // Name of first speed-enchanted chill wand for smite combo
-var iceWandB = getAlt(iceWandA)                          // Name of second speed-enchanted chill wand for smite combo
+var iceWandB = false                                     // Name of second speed-enchanted chill wand for smite combo
 var iceWandBossA = "ice wand *2 +11"                     // Name of first low-star speed-enchanted chill wand for smite combo vs. bosses
-var iceWandBossB = getAlt(iceWandBossA)                  // Name of second low-star speed-enchanted chill wand for smite combo vs. bosses
+var iceWandBossB = false                                 // Name of second low-star speed-enchanted chill wand for smite combo vs. bosses
 var stoneHammerA = false                                 // Name of first stun-enchanted stone hammer for stun-locking
 var stoneHammerB = false                                 // Name of second stun-enchanted stone hammer for stun-locking
 
@@ -878,7 +884,7 @@ Set("isDashBlocked", false)
 
   :?isStaffJumping & !Get("isDashBlocked") &!Get("mindFreeze")
   ^ & item.GetCooldown("quarterstaff") <= 0 & item.CanActivate()
-  ^ & (foeString ! bronze_guardian | isInState(33, 10))
+  ^ & (foeString ! bronze_guardian | isInState(33, 11))
   ^ & (foeString ! explode | foeString ! bomb cart)
     AssignBoth("quarterstaff", 20)
     AssignActivate("quarterstaff")
@@ -990,13 +996,13 @@ Set("isDashBlocked", false)
       ?icePillarWeaponB
         AssignRight(icePillarWeaponB, 2.6)
     :?stoneHammerA & stoneHammerB
-    ^& foeString = poena
+    ^& foeString = poena                //Jump 1 ; deadwood boss, get hammers.
       AssignLeft(stoneHammerA, 3.4)
       AssignRight(stoneHammerB, 3.4)
-    :?foeString = bolesh
+    :?foeString = bolesh                //Jump 2 ; cave boss, redo for close range debuff followed by frame mind inverse.
       Set("isDashBlocked", true)
       AssignBoth(getMainRanged(), 3.5)
-    :?foeString = pallas
+    :?foeString = pallas                //Jump 3 ; get vigor shield
     ^& foeString = phase2
       AssignRight(lifeStealShield, 2)
     :?foeString = yeti
