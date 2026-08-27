@@ -56,9 +56,9 @@ var debuffDamageWeapon = "poison hammer"                 // Name of weapon to ap
 var debuffDoTWeapon = "fire hammer"                      // Name of weapon to apply debuff_dot (fire)
 var debuffChillWeapon = "ice hammer"                     // Name of weapon to apply debuff_chill (ice)
 var magicRangedWeapon = "vigor staff"                    // Name of magical ranged weapon (able to hit physical-immune enemies)
-var lifeStealMeleeWeapon = false                         // Name of health-stealing melee weapon
+var lifeStealMeleeWeapon = "vigor hammer"                // Name of health-stealing melee weapon
 var lifeStealRangedWeapon = false                        // Name of health-stealing ranged weapon
-var lifeStealShield = "vigor shield h"                   // Name of heal-when-hit shield
+var lifeStealShield = false                              // Name of heal-when-hit shield
 var icePillarWeaponA = "big aether sword U *10 +10"      // Name of main weapon to use when facing ice pillars/wall in Icy Ridge
 var icePillarWeaponB = "moondial"                        // Name of offhand weapon to use when facing ice pillars/wall in Icy Ridge
 var strongArmorShield = "towering shield *10 +11"        // Name of "armor"-enchanted shield
@@ -109,8 +109,8 @@ var elemShields = [
   mainShield,            // BASE
   "poison shield",       // POISON (vs. Vigor)
   mainShield,            // VIGOR (vs. Aether)
-  "aether shield",            // AETHER (vs. Fire)
-  "fire shield",            // FIRE (vs. Ice)
+  "aether shield",       // AETHER (vs. Fire)
+  "fire shield",         // FIRE (vs. Ice)
   mainShield             // ICE (vs. Poison)
 ]
 
