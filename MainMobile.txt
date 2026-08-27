@@ -1,3 +1,13 @@
+// = IMPORT =
+import Hats/JesterHat
+import Cosmetics/TwinSuns
+import Pets/CatBalloon
+
+import UI/BossGauge
+import UI/BetterInfo2
+import UI/ClickAbilities
+import UI/MusicBox
+
 // = CONFIG =
 // - MOBILE-SPECIFIC SETTINGS
 var isSpeedRunning = false
@@ -21,32 +31,42 @@ var maxOverAvgToExitMult = 1.15
 var devourFireRuneThreshold = 3
 var devourFireRuneBossThreshold = 10
 
-// - ARSENAL
-var splashMeleeWeapon = "big aether sword U"
-var healthRuneA = "poison rune *10"
-var healthRuneB = "vigor rune *10"
-var antiArmorMeleeWeapon = "heavy hammer"
-var debuffDamageWeapon = "poison sword dP"
-var debuffDoTWeapon = "fire sword dF"
-var debuffChillWeapon = "ice sword dI"
-var magicRangedWeapon = "vigor staff"
-var lifeStealMeleeWeapon = false
-var lifeStealRangedWeapon = false
-var lifeStealShield = "vigor shield h"
-var icePillarWeaponA = "big aether sword U"
-var icePillarWeaponB = "moondial"
-var strongArmorShield = "compound shield +10"
-var fastArmorShield = getAlt(strongArmorShield)
-var iceWandA = "ice wand +14"
-var iceWandB = getAlt(iceWandA)
-var iceWandBossA = iceWandA
-var iceWandBossB = getAlt(iceWandBossA)
-var stoneHammerA = "stone hammer +10"
-var stoneHammerB = getAlt(stoneHammerA)
+// - ARSENAL 
+// If you don't have a weapon for the indicated slot, or you don't want to change your weapon in the
+//  situation described, set the value to 'false' (without any quotes).
+
+// The 'getAlt(weap)' function will equip a weapon that matches 'weap' but has a different enchantment level:
+//  It saves you the need to have to enter in the specific enchantment levels of two otherwise-identical weapons for dual-wielding.
+//  Note: You have to include an enchantment level (i.e. '+#') in whatever you pass to the function, or it won't work:
+//    GOOD: 'getAlt("vigor wand *10 +14")' -- will equip a ten-star vigor wand that _isn't_ enchanted to +14
+//    BAD:  'getAlt("vigor wand")' or 'getAlt("vigor wand *10")' -- will probably just break :P
+//  Most of the uses of 'getAlt()' below can be left as-is, if you want to dual-wield two of the same weapon
+
+var splashMeleeWeapon = "big aether sword U *10 +10"     // Name of unmaking splash weapon for mobs
+var healthRuneA = "vigor rune *10 +1"                    // Name of first runestone enchanted with health bonus (for defensive potion combo)
+var healthRuneB = false                                  // Name of second runestone enchanted with health bonus (for defensive potion combo)
+var antiArmorMeleeWeapon = "heavy hammer"                // Name of melee weapon to equip vs. strong armor
+var debuffDamageWeapon = "poison sword dP"               // Name of weapon to apply debuff_damage (poison)
+var debuffDoTWeapon = "fire sword dF"                    // Name of weapon to apply debuff_dot (fire)
+var debuffChillWeapon = "ice sword dI"                   // Name of weapon to apply debuff_chill (ice)
+var magicRangedWeapon = "vigor staff"                    // Name of magical ranged weapon (able to hit physical-immune enemies)
+var lifeStealMeleeWeapon = false                         // Name of health-stealing melee weapon
+var lifeStealRangedWeapon = false                        // Name of health-stealing ranged weapon
+var lifeStealShield = "vigor shield h"                   // Name of heal-when-hit shield
+var icePillarWeaponA = "big aether sword U *10 +10"      // Name of main weapon to use when facing ice pillars/wall in Icy Ridge
+var icePillarWeaponB = "moondial"                        // Name of offhand weapon to use when facing ice pillars/wall in Icy Ridge
+var strongArmorShield = "towering shield *10 +11"        // Name of "armor"-enchanted shield
+var fastArmorShield = getAlt(strongArmorShield)          // Name of "armor/sec"-enchanted shield
+var iceWandA = "ice wand *2 +11"                         // Name of first speed-enchanted chill wand for smite combo
+var iceWandB = getAlt(iceWandA)                          // Name of second speed-enchanted chill wand for smite combo
+var iceWandBossA = "ice wand *2 +11"                     // Name of first low-star speed-enchanted chill wand for smite combo vs. bosses
+var iceWandBossB = getAlt(iceWandBossA)                  // Name of second low-star speed-enchanted chill wand for smite combo vs. bosses
+var stoneHammerA = false                                 // Name of first stun-enchanted stone hammer for stun-locking
+var stoneHammerB = false                                 // Name of second stun-enchanted stone hammer for stun-locking
 
 // - DEFAULT EQUIPMENT
-var mainWeapon = "big aether sword U"
-var mainOffhand = false
+var mainWeapon = "big aether sword U *10 +10"
+var mainOffhand = getAlt(mainWeapon)
 var mainTwoHanded = false
 var mainShield = strongArmorShield
 var mainRanged = "repeating crossbow"
@@ -54,11 +74,11 @@ var mainRanged = "repeating crossbow"
 // - ELEMENTAL WEAPONS
 var elemWeapons = [
   mainWeapon,            // NONE
-  "poison sword D",      // POISON (vs. Vigor)
-  "vigor sword D",       // VIGOR (vs. Aether)
-  "aether sword D",      // AETHER (vs. Fire)
-  "fire sword D",        // FIRE (vs. Ice)
-  "ice sword +9 D"       // ICE (vs. Poison)
+  "poison hammer",      // POISON (vs. Vigor)
+  "vigor hammer",       // VIGOR (vs. Aether)
+  mainWeapon,            // AETHER (vs. Fire)
+  "fire hammer",        // FIRE (vs. Ice)
+  "ice hammer"       // ICE (vs. Poison)
 ]
 
 var elemOffhand = [
@@ -72,19 +92,19 @@ var elemOffhand = [
 
 var elemRanged = [
   mainRanged,            // NONE
-  "poison crossbow D",   // POISON (vs. Vigor)
-  "vigor staff D",       // VIGOR (vs. Aether)
-  "aether crossbow D",   // AETHER (vs. Fire)
-  "fire crossbow D",     // FIRE (vs. Ice)
-  "ice crossbow D"       // ICE (vs. Poison)
+  mainRanged,            // POISON (vs. Vigor)
+  "vigor staff",         // VIGOR (vs. Aether)
+  "aether staff",        // AETHER (vs. Fire)
+  mainRanged,            // FIRE (vs. Ice)
+  "ice staff"            // ICE (vs. Poison)
 ]
 
 var elemShields = [
   mainShield,            // BASE
-  mainShield,            // POISON (vs. Vigor)
+  "poison shield",       // POISON (vs. Vigor)
   mainShield,            // VIGOR (vs. Aether)
-  mainShield,            // AETHER (vs. Fire)
-  mainShield,            // FIRE (vs. Ice)
+  "aether shield",            // AETHER (vs. Fire)
+  "fire shield",            // FIRE (vs. Ice)
   mainShield             // ICE (vs. Poison)
 ]
 
