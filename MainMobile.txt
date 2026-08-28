@@ -6,8 +6,8 @@
 
 // = IMPORT =
 import Hats/JesterHat
-import Cosmetics/TwinSuns
-import Pets/CatBalloon
+// import Cosmetics/TwinSuns
+// import Pets/CatBalloon
 
 // import UI/BossGauge
 // import UI/BetterInfo2
@@ -63,9 +63,9 @@ var icePillarWeaponA = "big aether sword U *10 +10"      // Name of main weapon 
 var icePillarWeaponB = "moondial"                        // Name of offhand weapon to use when facing ice pillars/wall in Icy Ridge
 var strongArmorShield = "towering shield *10 +11"        // Name of "armor"-enchanted shield
 var fastArmorShield = getAlt(strongArmorShield)          // Name of "armor/sec"-enchanted shield
-var iceWandA = "ice wand *2 +11"                         // Name of first speed-enchanted chill wand for smite combo
+var iceWandA = false                                     // Name of first speed-enchanted chill wand for smite combo
 var iceWandB = false                                     // Name of second speed-enchanted chill wand for smite combo
-var iceWandBossA = "ice wand *2 +11"                     // Name of first low-star speed-enchanted chill wand for smite combo vs. bosses
+var iceWandBossA = false                                 // Name of first low-star speed-enchanted chill wand for smite combo vs. bosses
 var iceWandBossB = false                                 // Name of second low-star speed-enchanted chill wand for smite combo vs. bosses
 var stoneHammerA = false                                 // Name of first stun-enchanted stone hammer for stun-locking
 var stoneHammerB = false                                 // Name of second stun-enchanted stone hammer for stun-locking
