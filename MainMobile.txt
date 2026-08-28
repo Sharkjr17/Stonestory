@@ -67,8 +67,8 @@ var iceWandA = false                                     // Name of first speed-
 var iceWandB = false                                     // Name of second speed-enchanted chill wand for smite combo
 var iceWandBossA = false                                 // Name of first low-star speed-enchanted chill wand for smite combo vs. bosses
 var iceWandBossB = false                                 // Name of second low-star speed-enchanted chill wand for smite combo vs. bosses
-var stoneHammerA = false                                 // Name of first stun-enchanted stone hammer for stun-locking
-var stoneHammerB = false                                 // Name of second stun-enchanted stone hammer for stun-locking
+var stoneHammerA = "stone hammer *8 +8"                  // Name of first stun-enchanted stone hammer for stun-locking
+var stoneHammerB = getAlt(stoneHammerA)                  // Name of second stun-enchanted stone hammer for stun-locking
 
 // - DEFAULT EQUIPMENT
 var mainWeapon = "big aether sword U *10 +10"
