@@ -1015,7 +1015,7 @@ Set("isDashBlocked", false)
 
     ?item.GetCooldown("mind") <= 0
       ?foeString = dysangelos & foeString = phase1 & isInState(33, 26) & foeDamage < 5
-      ^| foeString = xyloalgia & isInState(33, 15)
+      ^| foeString = xyloalgia & isInState(33, 18) //15
         Dodge(false)
       :?foeString = dysangelos & foeString = phase3 &
         ^((item.GetCount("heavy hammer") = 0 | foeDebuffsString = fatigue) & isInState(32, 40) | isInState(115, 60))
